@@ -1,127 +1,129 @@
-import math
 import random
 
-# create a list of a deck of cards in poker
+# Creating a list of suits and ranks.
 suits = ['spades', 'hearts', 'clubs', 'diamonds']
 ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
-# define a deck of cards as a list of tuples, where each tuple is a (suit, rank) pair
+# Creating a list of a deck of cards in poker.
 deck = [(suit, rank) for suit in suits for rank in ranks]
 
-# define a function that shuffles the deck of cards
 def shuffle_deck(deck):
+    """
+    It shuffles the deck.
+    
+    :param deck: a list of cards
+    """
     random.shuffle(deck)
 
-# define a function that deals a number of cards to each player
 def deal_cards(deck, num_cards, players):
+    """
+    It takes a deck of cards, a number of cards to deal, and a list of players, and deals the cards to
+    the players.
+    
+    :param deck: a list of cards
+    :param num_cards: The number of cards to deal to each player
+    :param players: a list of lists, each list representing a player's hand
+    """
     for i in range(num_cards):
         for player in players:
             player.append(deck.pop())
             print('Dealt %s to player %d' % (player[-1], players.index(player) + 1))
 
-#define a function that deals a number of cards to the table
 def deal_table(deck, num_cards, table):
+    """
+    It deals a card from the deck to the table.
+    
+    :param deck: a list of cards
+    :param num_cards: the number of cards to deal to the table
+    :param table: a list of cards
+    :return: The table list is being returned.
+    """
     for i in range(num_cards):
         table.append(deck.pop())
         print('Dealt %s to the table' % (table))
     return table
 
-# define a function that prints the cards held by each player
 def print_cards(players):
+    """
+    It takes a list of players and prints out each player's name and cards.
+    
+    :param players: a list of lists of cards
+    """
     for i, player in enumerate(players):
         print('Player %d: %s' % (i + 1, player))
 
-# define a function that evaluates the strength of a given hand
 def evaluate_hand(hand):
+    """
+    The above function evaluates the hand of a player.
     
-    # first, check for a straight flush (five cards of the same suit in sequence)
-    straight_flush = True
-    for i in range(1, len(hand)):
-        if hand[i][0] != hand[i-1][0] or ranks.index(hand[i][1]) != ranks.index(hand[i-1][1]) + 1:
-            straight_flush = False
+    :param hand: a list of cards in the hand
+    :return: a tuple. The first element of the tuple is the rank of the hand and the second element of
+    the tuple is the rank of the highest card in the hand.
+    """
+# Sorting the hand of a player while taking into account the table cards.
+    hand = sorted(hand, key=lambda x: ranks.index(x[1]))
+
+# Creating a dictionary called rank_dict and it is setting the value of each key to 0.
+    rank_dict = {key: 0 for key in ranks}
+
+# Counting the number of unique ranks in the hand.
+    for card in hand:
+        rank_dict[card[1]] += 1
+
+# Creating a dictionary called suit_dict and it is setting the value of each key to 0.
+    suit_dict = {key: 0 for key in suits}
+
+# Counting the number of unique suits in the hand.
+    for card in hand:
+        suit_dict[card[0]] += 1
+
+# Counting the number of unique suits in the hand.
+    num_unique_suits = len([key for key in suit_dict if suit_dict[key] > 0])
+
+# Checking if there is a straight in the hand.
+    num_consecutive_ranks = 1
+    for i in range(len(ranks) - 1):
+        if ranks[i] in rank_dict and ranks[i + 1] in rank_dict:
+            num_consecutive_ranks += 1
+        else:
             break
-    if straight_flush:
-        return (8, max([ranks.index(card[1]) for card in hand]))
+
+# Checking if there is a straight flush in the hand.
+    if num_unique_suits == 1 and num_consecutive_ranks == 5:
+        return 8, ranks.index(hand[-1][1])
+
+# Checking if there is a four of a kind in the hand.
+    if 4 in rank_dict.values():
+        return 7, ranks.index([key for key in rank_dict if rank_dict[key] == 4][0])
+
+# Checking if there is a full house in the hand.
+    if 3 in rank_dict.values() and 2 in rank_dict.values():
+        return 6, ranks.index([key for key in rank_dict if rank_dict[key] == 3][0])
+
+# Checking if there is a flush in the hand.
+    if num_unique_suits == 1:
+        return 5, ranks.index(hand[-1][1])
+
+# Checking if there is a straight in the hand.
+    if num_consecutive_ranks == 5:
+        return 4, ranks.index(hand[-1][1])
     
-    # then, check for four of a kind (four cards with the same rank)
-    four_kind = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 4:
-            four_kind = True
-            break
-    if four_kind:
-        return (7, ranks.index(rank))
+# Checking if there is a three of a kind in the hand.
+    if 3 in rank_dict.values():
+        return 3, ranks.index([key for key in rank_dict if rank_dict[key] == 3][0])
 
-    three_kind = False
-    two_kind = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 3:
-            three_kind = True
-        elif [card for card in hand if card[1] == rank] == 2:
-            two_kind = True
-    if three_kind and two_kind:
-        return (6, ranks.index(rank))
-    # then, check for a full house (three of a kind and a pair)
-    full_house = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 3:
-            for rank2 in ranks:
-                if [card for card in hand if card[1] == rank2] == 2:
-                    full_house = True
-                    break
-            full_house = True
-            break
-    if full_house:
-        return (6, ranks.index(rank))
-
-    # then, check for a flush (five cards of the same suit)
-    flush = False
-    for suit in suits:
-        if [card for card in hand if card[0] == suit] == 5:
-            flush = True
-            break
-    if flush:
-        return (5, max([ranks.index(card[1]) for card in hand]))
-
-    # then, check for a straight (five cards in sequence)
-    straight = True
-    for i in range(1, len(hand)):
-        if ranks.index(hand[i][1]) != ranks.index(hand[i-1][1]) + 1:
-            straight = False
-            break
-    if straight:
-        return (4, max([ranks.index(card[1]) for card in hand]))
-    
-    # then, check for three of a kind (three cards with the same rank)
-    three_kind = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 3:
-            three_kind = True
-            break
-    if three_kind:
-        return (3, ranks.index(rank))
-
-    # then, check for two pairs (two cards with the same rank and two cards with another same rank)
-    two_pairs = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 2:
-            if two_pairs:
-                two_pairs = True
-                break
-            else:
-                two_pairs = True
-    if two_pairs:
-        return (2, ranks.index(rank))
+# Checking if there is two pairs in the hand.
+    if list(rank_dict.values()).count(2) == 2:
+        return 2, ranks.index([key for key in rank_dict if rank_dict[key] == 2][-1])
 
 # Checking if there is a pair in the hand.
-    pair = False
-    for rank in ranks:
-        if [card for card in hand if card[1] == rank] == 2:
-            pair = True
-            break
-    if pair:
-        return (1, ranks.index(rank))
+    if 2 in rank_dict.values():
+        return 1, ranks.index([key for key in rank_dict if rank_dict[key] == 2][0])
 
+# Returning the highest card in the hand.
+    if 1 in rank_dict.values():
+        return 0, ranks.index([key for key in rank_dict if rank_dict[key] == 1][-1])
+    
 # Returning the highest card in the hand.
     return (0, max([ranks.index(card[1]) for card in hand]))
 
@@ -178,9 +180,10 @@ def play_poker(players):
     print(' '.join(table[0]).title() + ' ' + ' '.join(table[1]).title() + ' ' + ' '.join(table[2]).title() + ' ' + ' '.join(table[3]).title() + ' ' + ' '.join(table[4]).title())
     print(" ")
 
-    # determine the winner
+# Determining the winner of the game.
     winner = determine_winner(players, table)
     print(" ")
     print('Player %d wins!' % (winner + 1))
 
+# Creating a list of lists. Each list represents a player's hand.
 play_poker([[], [], [], []])
