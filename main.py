@@ -33,6 +33,7 @@ def print_cards(players):
 
 # define a function that evaluates the strength of a given hand
 def evaluate_hand(hand):
+    
     # first, check for a straight flush (five cards of the same suit in sequence)
     straight_flush = True
     for i in range(1, len(hand)):
@@ -41,6 +42,7 @@ def evaluate_hand(hand):
             break
     if straight_flush:
         return (8, max([ranks.index(card[1]) for card in hand]))
+    
     # then, check for four of a kind (four cards with the same rank)
     four_kind = False
     for rank in ranks:
@@ -50,8 +52,6 @@ def evaluate_hand(hand):
     if four_kind:
         return (7, ranks.index(rank))
 
-    # then, check for a full house (three of a kind and a pair)
-    full_house = False
     three_kind = False
     two_kind = False
     for rank in ranks:
@@ -60,6 +60,18 @@ def evaluate_hand(hand):
         elif [card for card in hand if card[1] == rank] == 2:
             two_kind = True
     if three_kind and two_kind:
+        return (6, ranks.index(rank))
+    # then, check for a full house (three of a kind and a pair)
+    full_house = False
+    for rank in ranks:
+        if [card for card in hand if card[1] == rank] == 3:
+            for rank2 in ranks:
+                if [card for card in hand if card[1] == rank2] == 2:
+                    full_house = True
+                    break
+            full_house = True
+            break
+    if full_house:
         return (6, ranks.index(rank))
 
     # then, check for a flush (five cards of the same suit)
@@ -101,7 +113,7 @@ def evaluate_hand(hand):
     if two_pairs:
         return (2, ranks.index(rank))
 
-    # then, check for a pair (two cards with the same rank)
+# Checking if there is a pair in the hand.
     pair = False
     for rank in ranks:
         if [card for card in hand if card[1] == rank] == 2:
@@ -110,45 +122,61 @@ def evaluate_hand(hand):
     if pair:
         return (1, ranks.index(rank))
 
-    # finally, return the highest ranked card
+# Returning the highest card in the hand.
     return (0, max([ranks.index(card[1]) for card in hand]))
-# define a function that determines the winner with the table cards
+
 def determine_winner(players, table):
-    # first, evaluate the strength of each player's hand 
+    """
+    It determines the winner of the game.
+    
+    :param players: a list of player objects
+    :param table: a list of 5 cards
+    """
+# Evaluating the hand of each player and the table cards.
     hands = [evaluate_hand(player + table) for player in players]
 
-    # then, determine the winner
+# Determining the winner.
     winner = 0
     for i in range(1, len(hands)):
         if hands[i][0] > hands[winner][0] or (hands[i][0] == hands[winner][0] and hands[i][1] > hands[winner][1]):
             winner = i
     return winner
 
-# define a function that plays a game of poker
 def play_poker(players):
-    # shuffle the deck
+    """
+    This function shuffles the deck and deals the cards to the players.
+    
+    :param players: a list of player objects
+    """
     shuffle_deck(deck)
 
-    # deal two cards to each player
+# Dealing 2 cards to each player.
     deal_cards(deck, 2, players)
     
-    # deal five cards to the table
+# Creating a list called table and then it is dealing 5 cards to the table.
     table = []
     deal_table(deck, 5, table)
     
-    # print the cards held by each player
+# Printing the cards of each player.
     print_cards(players)
     
-    # print all the cards for every player and table cards and print it in a nice way
+# Printing the cards of each player and the table cards.
     print(" ")
-    print(f"Player 1: {players[0][0][0]} {players[0][0][1]}")
-    print('Player 1: %s %s' % (players[0][0], players[0][1]))
-    print('Player 2: %s %s' % (players[1][0], players[1][1]))
-    print('Player 3: %s %s' % (players[2][0], players[2][1]))
-    print('Player 4: %s %s' % (players[3][0], players[3][1]))
-    print('Table: %s %s %s %s %s' % (table[0], table[1], table[2], table[3], table[4]))
+    print("Player 1")
+    print(' '.join(players[0][0]).title() + ' ' + ' '.join(players[0][1]).title())
     print(" ")
-
+    print("Player 2")
+    print(' '.join(players[1][0]).title() + ' ' + ' '.join(players[1][1]).title())
+    print(" ")
+    print("Player 3")
+    print(' '.join(players[2][0]).title() + ' ' + ' '.join(players[2][1]).title())
+    print(" ")
+    print("Player 4")
+    print(' '.join(players[3][0]).title() + ' ' + ' '.join(players[3][1]).title())
+    print(" ")
+    print('The Table Cards')
+    print(' '.join(table[0]).title() + ' ' + ' '.join(table[1]).title() + ' ' + ' '.join(table[2]).title() + ' ' + ' '.join(table[3]).title() + ' ' + ' '.join(table[4]).title())
+    print(" ")
 
     # determine the winner
     winner = determine_winner(players, table)
